@@ -52,6 +52,8 @@ function App() {
   const [modalEditar, setModalEditar] = useState(false);
   const [modalEliminar, setModalEliminar] = useState(false);
 
+  const [inputText, setInputText] = useState("");
+
   const [libroSeleccionado, setLibroSeleccionado] = useState({
     tittle: '',
     Genero: '',
@@ -59,6 +61,12 @@ function App() {
     numpages: 0,
     sinopsis: ''
   })
+
+  let inputHandler = (e) => {
+    var lowerCase = e.target.value.toLowerCase();
+    setInputText(lowerCase);
+    setPage(0);
+  };
 
   const abrirCerrarModalInsertar = () => {
     setModalInsertar(!modalInsertar);
@@ -87,8 +95,8 @@ function App() {
 
   const listarGet = async () => {
     await axios.get(URL)
-      .then(response => {
-        setData(response.data.content);
+      .then(response => {   
+          setData(response.data.content);
       })
   }
 
@@ -105,7 +113,6 @@ function App() {
     await axios.put(URL + libroSeleccionado._id, libroSeleccionado)
       .then(response => {
         var dataNueva = data;
-
         dataNueva.map(libro => {
           if (libroSeleccionado._id === libro._id) {
             libro.tittle = libroSeleccionado.tittle;
@@ -131,7 +138,6 @@ function App() {
   useEffect(() => {
     listarGet();
   })
-
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -188,7 +194,7 @@ function App() {
 
   const bodyEliminar = (
     <Container component={Paper} maxWidth="sm">
-      <br/><br/>
+      <br /><br />
       <p>Estás seguro que deseas eliminar el libro <b>{libroSeleccionado && libroSeleccionado.tittle}</b> ? </p>
       <div align="right">
         <Button color="secondary" onClick={() => borrarDelete()} >Sí</Button>
@@ -200,6 +206,20 @@ function App() {
 
   return (
     <div className="App">
+      
+      <Container>
+        <h1>Gestión de Libros</h1>
+        <div className="search">
+          <TextField
+            id="outlined-basic"
+            onChange={inputHandler}
+            variant="outlined"
+            fullWidth
+            label="Buscar"
+          />
+        </div>   
+      </Container>
+
       <br />
       <br />
       <Container maxWidth="lg">
@@ -225,12 +245,19 @@ function App() {
             </TableHead>
             <TableBody>
               {data
+                .filter((libro => {
+                    if (inputText === '') {
+                      return libro;
+                    } else if (libro.tittle.toLowerCase().includes(inputText)) {
+                      return libro;
+                    }
+                  }))
                 .slice(page * rowsPerPage, (page * rowsPerPage) + rowsPerPage)
                 .map((libro) => (
-                  <StyledTableRow key={libro.id}>
+                <StyledTableRow key={libro._id}>
                     <StyledTableCell align="right">{libro.tittle}</StyledTableCell>
                     <StyledTableCell align="right">{libro.Genero}</StyledTableCell>
-                    <StyledTableCell align="right">{libro.dateOf.slice(0,10)}</StyledTableCell>
+                    <StyledTableCell align="right">{libro.dateOf.slice(0, 10)}</StyledTableCell>
                     <StyledTableCell align="right">{libro.numpages}</StyledTableCell>
                     <StyledTableCell align="right">{libro.sinopsis}</StyledTableCell>
                     <StyledTableCell align="right">
